@@ -3,7 +3,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def hello():
-    return "Hello from Kubernetes on Minikube!"
+    return "Hello from Kubernetes on Minikube to karthick!"
 
 app.run(host="0.0.0.0", port=5000)
 
