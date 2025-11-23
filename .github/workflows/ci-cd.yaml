@@ -27,17 +27,13 @@ jobs:
         run: |
           python -c "from app import app; print(app)"
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
       - name: Configure Minikube Docker
         run: |
+          # Load Minikube Docker env
           echo "${{ secrets.MINIKUBE_DOCKER_ENV }}" > docker-env.sh
           source docker-env.sh
-
-      - name: Build Docker Image
-        run: |
-          docker build -t myapp:latest .
+          # Build the image in Minikube Docker
+          docker build -t flask-app:1.0 .
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
@@ -47,9 +43,10 @@ jobs:
       - name: Configure kubeconfig
         run: |
           echo "${{ secrets.KUBECONFIG }}" > kubeconfig
-          export KUBECONFIG=kubeconfig
+          export KUBECONFIG=$PWD/kubeconfig
+          # Apply manifests (ensure deployment and service exist)
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
+          # Ensure rollout completes
+          kubectl rollout status deployment/flask-app
 
-      - name: Deploy to Minikube
-        run: |
-          kubectl set image deployment/myapp-deployment myapp=myapp:latest
-          kubectl rollout status deployment/myapp-deployment
